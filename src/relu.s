@@ -23,12 +23,30 @@
 #   Result: [ 0, 0, 3,  0, 5]
 # ==============================================================================
 relu:
-    li t0, 1             
-    blt a1, t0, error     
-    li t1, 0             
+    li t0, 1
+    blt a1, t0, error
+    li t1, 0
 
 loop_start:
-    # TODO: Add your own implementation
+    beq t1, a1, done
+
+    lw t3, 0(a0)
+
+    blt t3, zero, set_zero
+    j write
+
+set_zero:
+    li t3, 0 
+
+write:
+    sw t3, 0(a0) 
+
+    addi a0, a0, 4 
+    addi t1, t1, 1
+    j loop_start
+
+done:
+    ret
 
 error:
     li a0, 36          

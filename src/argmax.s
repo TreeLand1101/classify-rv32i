@@ -29,8 +29,30 @@ argmax:
 
     li t1, 0
     li t2, 1
+
+    addi a0, a0, 4
+
 loop_start:
     # TODO: Add your own implementation
+    beq t2, a1, done
+
+    lw t3, 0(a0)
+
+    bgt t3, t0, update_max  
+    j index_increment 
+
+update_max:
+    mv t0, t3
+    mv t1, t2
+
+index_increment:
+    addi a0, a0, 4
+    addi t2, t2, 1
+    j loop_start
+
+done:
+    mv a0, t1
+    ret
 
 handle_error:
     li a0, 36
