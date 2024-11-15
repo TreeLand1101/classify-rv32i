@@ -167,6 +167,21 @@ classify:
     lw t0, 0(s3)
     lw t1, 0(s8)
     # mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+
+    # Prologue
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a1, 4(sp)
+
+    mv a0, t0
+    mv a1, t1
+    jal ra, my_mul
+
+    # Epilogue
+    lw ra, 0(sp)
+    lw a1, 4(sp)
+    addi sp, sp, 8
+
     slli a0, a0, 2
     jal malloc 
     beq a0, x0, error_malloc
@@ -205,7 +220,23 @@ classify:
     lw t1, 0(s8)
     # mul a1, t0, t1 # length of h array and set it as second argument
     # FIXME: Replace 'mul' with your own implementation
-    
+
+    # Prologue
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+
+    mv a0, t0
+    mv a1, t1
+
+    jal ra my_mul
+    mv a1, a0
+
+    # Epilogue
+    lw ra, 0(sp)
+    lw a0, 4(sp)
+    addi sp, sp, 8
+
     jal relu
     
     lw a0, 0(sp)
@@ -227,6 +258,22 @@ classify:
     lw t0, 0(s3)
     lw t1, 0(s6)
     # mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+
+    # Prologue
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a1, 4(sp)
+
+    mv a0, t0
+    mv a1, t1
+
+    jal ra, my_mul
+
+    # Epilogue
+    lw ra, 0(sp)
+    lw a1, 4(sp)    
+    addi sp, sp, 8
+
     slli a0, a0, 2
     jal malloc 
     beq a0, x0, error_malloc
@@ -286,8 +333,24 @@ classify:
     mv a0, s10 # load o array into first arg
     lw t0, 0(s3)
     lw t1, 0(s6)
-    mul a1, t0, t1 # load length of array into second arg
+    # mul a1, t0, t1 # load length of array into second arg
     # FIXME: Replace 'mul' with your own implementation
+
+    # Prologue
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+
+    mv a0, t0
+    mv a1, t1
+
+    jal ra, my_mul
+    mv a1, a0
+
+    # Epilogue
+    lw ra, 0(sp)
+    lw a0, 4(sp)
+    addi sp, sp, 8
     
     jal argmax
     
@@ -384,3 +447,50 @@ error_args:
 error_malloc:
     li a0, 26
     j exit
+
+# =======================================================
+# FUNCTION: Integer Multiplication
+#
+# Performs operation: result = x * y
+#
+# Arguments:
+#   Input Integers:
+#     a0: First integer (x)
+#     a1: Second integer (y)
+#
+# Output:
+#   The result of x * y is stored in a0.
+# =======================================================
+my_mul:
+    # Prologue
+    addi sp, sp, -16
+    sw s0, 0(sp)
+    sw s1, 4(sp)
+    sw s2, 8(sp)
+    sw s3, 12(sp)
+
+    mv s0, a0              # Multiplicand
+    mv s1, a1              # Multiplier
+    li s2, 0               # Result
+
+multiply_loop:
+    andi s3, s1, 1         # Check if the LSB of s1 is 1
+    beq s3, zero, skip_add # If LSB is 0, skip addition
+    add s2, s2, s0         # Add s0 to result
+
+skip_add:
+    slli s0, s0, 1         # Left shift s0 (multiplicand) by 1
+    srli s1, s1, 1         # Right shift s1 (multiplier) by 1
+    bnez s1, multiply_loop
+
+end_multiply:
+    mv a0, s2
+
+    # Epilogue
+    lw s0, 0(sp)
+    lw s1, 4(sp)
+    lw s2, 8(sp)
+    lw s3, 12(sp)
+    addi sp, sp, 16
+
+    jr ra
