@@ -67,9 +67,18 @@ end_multiply:
     jr ra
 ```
 
+Core Concept:
+- Binary multiplication adds shifted versions of the multiplicand based on the multiplier's bits. 
+- A bit of 1 means adding the shifted multiplicand; 0 means skipping.
+
+High-Level Process:
+- Decompose Multiplier: Check the LSB of the multiplier; if 1, add the shifted multiplicand to the result. Shift the multiplier right.
+- Shift and Accumulate: Shift the multiplicand left (multiply by 2) and repeat until all multiplier bits are processed.
+
 ## Part A
 
 ### abs.s
+This function first checks whether a value is positive or negative. If the value is negative, it converts it to positive by subtracting it from 0 and stores the result.
 ```assembly
 abs:
     # ======================
@@ -82,6 +91,7 @@ abs:
 ```
 
 ### dot.s
+This function computes the dot product of two vectors.
 ```assembly
 dot:
     # ======================
@@ -124,6 +134,7 @@ loop_start:
 ```
 
 ### argmax.s
+This function finds the index of the maximum value in a sequence. It starts by loading the value at the memory address pointed to by `a0` into `t3`. If `t3` is greater than the current maximum value in `t0`, it updates `t0` with the new maximum and stores the corresponding index in `t1`. The pointer `a0` is then incremented, and the index `t2` is updated before the loop repeats.
 ```assembly
 argmax:
     # ======================
@@ -153,6 +164,13 @@ index_increment:
 ```
 
 ### matmul.s
+We made the following changes:
+1. Add the missing part for incrementing the index in `inner_loop_end`
+- `slli t0, a2, 2`: Shifts the column index to get the byte offset (4 bytes per element).
+- `add s3, s3, t0`: Moves to the next row of matrix0.
+- `addi s0, s0, 1`: Moves to the next column of matrix1.
+2. Add the Prologue in `outer_loop_end`
+
 ```assembly
     # ======================
     # This part is unchanged
@@ -164,9 +182,22 @@ inner_loop_end:
     slli t0, a2, 2
     add s3, s3, t0
     j outer_loop_start
+
+outer_loop_end:
+    lw ra, 0(sp)
+    lw s0, 4(sp)
+    lw s1, 8(sp)
+    lw s2, 12(sp)
+    lw s3, 16(sp)
+    lw s4, 20(sp)
+    lw s5, 24(sp)
+    addi sp, sp, 28
+    
+    jr ra
 ```
 
 ### relu.s
+This function works by checking if a value is negative. If the value is negative, it sets the value to 0. If the value is already 0 or positive, it remains unchanged.
 ```assembly
     # ======================
     # This part is unchanged
